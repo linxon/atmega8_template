@@ -28,7 +28,7 @@ FUSES      = -U lfuse:w:0xFF:m -U hfuse:w:0xC4:m #-U efuse:w:0xFF:m
 endif
 
 ifndef COMPILE_PARAMS
-COMPILE_PARAMS   = -Wall -w -Wl,--gc-sections -ffunction-sections -fdata-sections -Os -std=gnu11 -I.
+COMPILE_PARAMS   = $(GCC_PARAMS) -Wall -w -Wl,--gc-sections -ffunction-sections -fdata-sections -Os -std=gnu11 -I. #-save-temps
 endif
 
 FLASH_HEXFILE    = flash.hex
