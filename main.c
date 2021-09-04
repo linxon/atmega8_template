@@ -10,7 +10,7 @@ int main() {
     printf("Ready!\n");
 
     for (;;) {
-        ;
+        asm("nop");
     }
 
     fclose(&uart_str);
@@ -34,14 +34,14 @@ void uart_init(void) {
     stdout = &uart_str;
 }
 
-byte _uart_rx_char(void) {
+int _uart_rx_char(FILE *stream) {
     loop_until_bit_is_set(UCSRA, RXC);
     return UDR;
 }
 
-void _uart_tx_char(unsigned char data) {
+int _uart_tx_char(char data, FILE *stream) {
     if (data == '\n')
-        _uart_tx_char('\r');
+        _uart_tx_char('\r', stream);
 
     loop_until_bit_is_set(UCSRA, UDRE);
     UDR = data;

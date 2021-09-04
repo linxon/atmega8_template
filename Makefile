@@ -7,8 +7,14 @@ ifndef DEVICE
 DEVICE     = atmega8
 endif
 
+ifndef SIMAVR_MCU
+SIMAVR_MCU = atmega8
+else
+SIMAVR_MCU = $(DEVICE)
+endif
+
 ifndef CLOCK
-CLOCK      = 16000000L
+CLOCK      = 8000000UL
 endif
 
 ifndef PROGRAMMER
@@ -28,7 +34,12 @@ FUSES      = -U lfuse:w:0xFF:m -U hfuse:w:0xC4:m #-U efuse:w:0xFF:m
 endif
 
 ifndef COMPILE_PARAMS
-COMPILE_PARAMS   = $(GCC_PARAMS) -Wall -w -Wl,--gc-sections -ffunction-sections -fdata-sections -Os -std=gnu11 -I. #-save-temps
+ifdef DEBUG
+COMPILE_PARAMS   = $(GCC_PARAMS) -Wall -g -std=gnu11 -I. -save-temps
+CLEAN_FILES      = main.i main.s
+else
+COMPILE_PARAMS   = $(GCC_PARAMS) -Wall -w -Wl,--gc-sections -ffunction-sections -fdata-sections -Os -std=gnu11 -I.
+endif
 endif
 
 FLASH_HEXFILE    = flash.hex
@@ -47,6 +58,7 @@ endif
 ######################################################################
 
 COMPILE = avr-gcc $(COMPILE_PARAMS) -DF_CPU=$(CLOCK) -mmcu=$(DEVICE)
+SIMAVR = simavr -v --mcu $(SIMAVR_MCU) --freq $(CLOCK) -t -o simavr-out.vcd
 
 all:	main.hex
 
@@ -86,7 +98,7 @@ fuse:
 install: flash fuse
 
 clean:
-	rm -f main.hex main.elf $(OBJECTS) $(FLASH_HEXFILE) $(FLASH_BINFILE) $(EEPROM_BINFILE) $(HFUSE_FILE) $(LFUSE_FILE) $(EFUSE_FILE)
+	rm -f main.hex main.elf $(CLEAN_FILES) $(OBJECTS) $(FLASH_HEXFILE) $(FLASH_BINFILE) $(EEPROM_BINFILE) $(HFUSE_FILE) $(LFUSE_FILE) $(EFUSE_FILE)
 
 _clean-after:
 	rm -f $(OBJECTS) main.hex
@@ -104,3 +116,6 @@ disasm:	main.elf
 
 cpp:
 	$(COMPILE) -E $(SOURCES)
+
+simavr:
+	$(SIMAVR) main.hex
